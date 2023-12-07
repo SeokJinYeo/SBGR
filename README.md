@@ -15,6 +15,7 @@ SBGR is a novel strategy for achieving precise image stitching at the single-mol
 
 
 # Usage examples
+Put SBGR.py on your repository.
 
 
 # References
