@@ -16,9 +16,9 @@ SBGR is a novel strategy for achieving precise image stitching at the single-mol
 
 # Usage examples
 Put SBGR.py on your repository.
-'''
+```
 stitched_spots,stitched_positions = SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step):
-'''
+```
 
 
 # References
