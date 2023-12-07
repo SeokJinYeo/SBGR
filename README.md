@@ -9,7 +9,7 @@ SBGR is a novel strategy for achieving precise image stitching at the single-mol
 
 - **Spot-Based Data:** SBGR utilizes identified molecular spots for image alignment, offering a robust evaluation of translation estimates and stitching performance.
   
-- **Sub-pixel Accuracy:** Achieves sub-pixel accuracy (83 ± 36 nm) outperforming existing image-based stitching methods.
+- **Sub-pixel Accuracy:** Achieves sub-pixel accuracy outperforming existing image-based stitching methods.
   
 - **Duplicate Spot Removal:** Incorporates a mechanism to surgically remove duplicate spots in overlapping regions, maximizing information recovery.
 
