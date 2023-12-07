@@ -2,7 +2,7 @@
 
 ## Overview
 
-SBGR is a novel strategy for achieving precise image stitching at the single-molecule level in tissue-scale spatial transcriptomics. This method shifts the focus from raw images to identified molecular spots, enabling high-resolution image alignment with exceptional accuracy.
+SBGR is a novel strategy for achieving precise image stitching at the single-molecule level in tissue-scale **spatial transcriptomics**. This method shifts the focus from raw images to identified molecular spots, enabling high-resolution image alignment with exceptional accuracy.
 ![SBGR workflow](https://github.com/SeokJinYeo/SBGR/blob/main/Wrokflow.png)
 ## Features
 
