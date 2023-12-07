@@ -17,7 +17,7 @@ SBGR is a novel strategy for achieving precise image stitching at the single-mol
 # Usage examples
 Put SBGR.py on your repository.
 
-All packages in the SBGR.py are required.
+All packages in the SBGR.py are pre-requirements.
 
 Prepare decoded spots file and microscope position file.
 
