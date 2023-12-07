@@ -19,6 +19,7 @@ Put SBGR.py on your repository.
 All packages in the SBGR.py are required.
 Prepare decoded spots file and microscope position file.
 Make sure that files have same format with barcode_warped.csv, positions.csv in exmample data
+
 ```
 import SBGR
 stitched_spots,stitched_positions = SBGR.SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step)
