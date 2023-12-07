@@ -25,6 +25,7 @@ Make sure that files have same format with barcode_warped.csv, positions.csv in 
 
 ```
 import SBGR
+
 stitched_spots,stitched_positions = SBGR.SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step)
 ```
 
