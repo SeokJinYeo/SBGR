@@ -21,7 +21,7 @@ All packages in the SBGR.py are pre-requirements.
 
 Prepare decoded spots file and microscope position file.
 
-Make sure input files have same formats with barcodes_20230426_raw_warped.csv (need fov_num, global_x, global_y, barcode_id) and positions.csv in exmample data folder.
+Make sure input files have same formats with barcodes_20230426_raw_warped.csv and positions.csv in exmample data folder.
 
 ```
 import SBGR
