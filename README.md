@@ -17,4 +17,4 @@ SBGR is a novel strategy for achieving precise image stitching at the single-mol
 
 
 # References
-[1] Seokjin Yeo, Alex W Schrader, Juyeon Lee, Marisa Asadian, Hee-Sun Han, Spot-Based Global Registration for Sub-pixel Resolution Stitching of Single-Molecule Resolution Images for Tissue-Scale Spatial Transcriptomics.
+[1] Seokjin Yeo, Alex W Schrader, Juyeon Lee, Marisa Asadian, Hee-Sun Han, "Spot-Based Global Registration for Sub-pixel Resolution Stitching of Single-Molecule Resolution Images for Tissue-Scale Spatial Transcriptomics."
