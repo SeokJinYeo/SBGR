@@ -26,7 +26,7 @@ Make sure input files have same formats with barcodes_20230426_raw_warped.csv an
 ```
 import SBGR
 stitched_spots,stitched_positions = SBGR.SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step)
-ex)stitched_spots,stitched_positions = SBGR.SBGR(0.103, r'C:\Users\User\Desktop\2022_research\Merfish data processing softwares', 'D:/SBGR_git/SBGR/barcodes_20230426_raw_warped.csv','D:/SBGR_git/SBGR/positions.csv' , 30, 1.5
+ex)stitched_spots,stitched_positions = SBGR.SBGR(0.103, r'C:\Users\User\Desktop\2022_research\Merfish data processing softwares', 'D:/SBGR_git/SBGR/barcodes_20230426_raw_warped.csv','D:/SBGR_git/SBGR/positions.csv' , 30, 1.5)
 ```
 
 
