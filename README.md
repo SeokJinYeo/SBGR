@@ -56,8 +56,6 @@ The SBGR function will output below data sets:
 
 Please ensure the input CSV files are correctly formatted with the expected headers and data types. The output directory must be a valid path with the necessary write permissions.
 
-For further information on how to use the SBGR function, please refer to the [Usage Example](#usage-example) section.
-
 ## Usage examples
 Put **SBGR.py** on your repository. Edit the inputs.
 ```
