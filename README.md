@@ -68,7 +68,7 @@ if __name__ == '__main__':
     spots_loc =  '/barcodes_20230426_raw_warped.csv'
     positions_loc = '/positions.csv'
     output_loc = r'/JIn\SBGR'
-    stitched_spots,stitched_positions = SBGR(pixel_size,output_loc ,spots_loc,positions_loc,z_step)
+    stitched_spots,stitched_positions = SBGR(pixel_size,output_loc ,spots_loc,positions_loc,z_step,fov_size)
 ```
 
 
