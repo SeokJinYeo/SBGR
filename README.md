@@ -65,9 +65,9 @@ if __name__ == '__main__':
     pixel_size = 0.103 #um
     fov_size = 2048 #pixels
     z_step = 1.5 #um
-    spots_loc =  'F:/Share/JIn/SBGR/barcodes_20230426_raw_warped.csv'
-    positions_loc = 'F:/Share/JIn/SBGR/positions.csv'
-    output_loc = r'F:\Share\JIn\SBGR'
+    spots_loc =  '/barcodes_20230426_raw_warped.csv'
+    positions_loc = '/positions.csv'
+    output_loc = r'/JIn\SBGR'
     stitched_spots,stitched_positions = SBGR(pixel_size,output_loc ,spots_loc,positions_loc,z_step)
 ```
 
