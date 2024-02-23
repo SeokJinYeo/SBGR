@@ -32,13 +32,8 @@ SBGR is a novel strategy for achieving precise image stitching at the single-mol
 
 Contains detailed information about detected spots from spatial transcriptomics data, with the following columns:
 
-- **`barcode_id`**: Unique identifier for each spot's barcode.
+- **`barcode_id`**: Unique identifier for each spot's barcode (gene identity).
 - **`fov`**: Index of the FOV where the spot was detected.
-- **`mean_intensity`**: Average intensity of the detected spot.
-- **`max_intensity`**: Maximum intensity of the detected spot.
-- **`area`**: Area covered by the spot within the image.
-- **`mean_distance`**: Average distance from the spot to a reference point or between spots.
-- **`min_distance`**: Minimum distance from the spot to a reference point or between spots.
 - **`global_x`, `global_y`, `global_z`**: Global coordinates of the spot, mapping it onto the entire sample or experiment's reference frame.
 
 ### `positions.csv`
