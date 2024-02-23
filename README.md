@@ -45,13 +45,17 @@ Contains detailed information about detected spots from spatial transcriptomics 
 
 A two-column CSV file with each row representing the x and y coordinates (in µm) of the top left corner of a FOV. This file is crucial for determining the absolute positions of the FOVs within the global space of the sample.
 
-## Expected Output
+## Output files
 
-The SBGR function will output two structured data sets:
+The SBGR function will output below data sets:
 
-- **`stitched_spots`**: Contains the processed spots data, including their new global positions after stitching.
+- **`stitched_spots.csv`**: Contains the processed spots data, including their new global positions after stitching.
 
-- **`stitched_positions`**: Contains the adjusted positional information of the FOVs, reflecting the global arrangement of the sample.
+- **`stitched_positions.csv`**: Contains the adjusted positional information of the FOVs.
+
+- **`offset.csv`**: Contains the d_err and the number of total spots and duplicate spots etc.. for each overlapping region.
+
+- **`dup_spots.csv`**: Contains the identities of every identified duplicate spots.
 
 ## Usage Notes
 
