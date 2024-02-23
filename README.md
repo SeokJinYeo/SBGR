@@ -14,19 +14,62 @@ SBGR is a novel strategy for achieving precise image stitching at the single-mol
 - **Duplicate Spot Removal:** Incorporates a mechanism to surgically remove duplicate spots in overlapping regions, maximizing information recovery.
 
 
-# Usage examples
-Put **SBGR.py** on your repository.
+## Input Parameters
 
-All packages in the SBGR.py are pre-requirements.
+- **`pixel_size`**: The physical size of one pixel in the image, specified in micrometers (µm). This parameter is essential for converting pixel measurements to real-world units.
 
-Prepare decoded spots file and microscope position file.
+- **`output_loc`**: The file path to the directory where output files from the SBGR function will be stored.
 
-Make sure input files have same formats with barcodes_20230426_raw_warped.csv and positions.csv in exmample data folder.
+- **`spots_loc`**: The path to the CSV file containing information about detected spots (`barcodes_20230426_raw_warped.csv`).
 
+- **`positions_loc`**: The path to the CSV file containing the locations of each FOV before stitching (`positions.csv`).
+
+- **`z_step`**: The step size along the z-axis for images taken at different depths, specified in micrometers (µm).
+
+## Input Files
+
+### `barcodes_20230426_raw_warped.csv`
+
+Contains detailed information about detected spots from spatial transcriptomics data, with the following columns:
+
+- **`barcode_id`**: Unique identifier for each spot's barcode.
+- **`fov`**: Index of the FOV where the spot was detected.
+- **`mean_intensity`**: Average intensity of the detected spot.
+- **`max_intensity`**: Maximum intensity of the detected spot.
+- **`area`**: Area covered by the spot within the image.
+- **`mean_distance`**: Average distance from the spot to a reference point or between spots.
+- **`min_distance`**: Minimum distance from the spot to a reference point or between spots.
+- **`global_x`, `global_y`, `global_z`**: Global coordinates of the spot, mapping it onto the entire sample or experiment's reference frame.
+
+### `positions.csv`
+
+A two-column CSV file with each row representing the x and y coordinates (in µm) of the top left corner of a FOV. This file is crucial for determining the absolute positions of the FOVs within the global space of the sample.
+
+## Expected Output
+
+The SBGR function will output two structured data sets:
+
+- **`stitched_spots`**: Contains the processed spots data, including their new global positions after stitching.
+
+- **`stitched_positions`**: Contains the adjusted positional information of the FOVs, reflecting the global arrangement of the sample.
+
+## Usage Notes
+
+Please ensure the input CSV files are correctly formatted with the expected headers and data types. The output directory must be a valid path with the necessary write permissions.
+
+For further information on how to use the SBGR function, please refer to the [Usage Example](#usage-example) section.
+
+## Usage examples
+Put **SBGR.py** on your repository. Edit the inputs.
 ```
-import SBGR
-stitched_spots,stitched_positions = SBGR.SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step)
-ex)stitched_spots,stitched_positions = SBGR.SBGR(0.103, r'C:\Users\User\Desktop\2022_research\Merfish data processing softwares', 'D:/SBGR_git/SBGR/barcodes_20230426_raw_warped.csv','D:/SBGR_git/SBGR/positions.csv' , 30, 1.5)
+if __name__ == '__main__':  
+    pixel_size = 0.103 #um
+    fov_size = 2048 #pixels
+    z_step = 1.5 #um
+    spots_loc =  'F:/Share/JIn/SBGR/barcodes_20230426_raw_warped.csv'
+    positions_loc = 'F:/Share/JIn/SBGR/positions.csv'
+    output_loc = r'F:\Share\JIn\SBGR'
+    stitched_spots,stitched_positions = SBGR(pixel_size,output_loc ,spots_loc,positions_loc,z_step)
 ```
 
 
