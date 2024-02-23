@@ -28,7 +28,7 @@ SBGR is a novel strategy for achieving precise image stitching at the single-mol
 
 ## Input Files
 
-### `barcodes_20230426_raw_warped.csv`
+### `Spot file (ex. barcodes_20230426_raw_warped.csv)`
 
 Contains detailed information about detected spots from spatial transcriptomics data, with the following columns:
 
@@ -36,7 +36,7 @@ Contains detailed information about detected spots from spatial transcriptomics 
 - **`fov`**: Index of the FOV where the spot was detected.
 - **`global_x`, `global_y`, `global_z`**: Global coordinates of the spot, mapping it onto the entire sample or experiment's reference frame.
 
-### `positions.csv`
+### `Position file (ex. positions.csv)`
 
 A two-column CSV file with each row representing the x and y coordinates (in µm) of the top left corner of a FOV. This file is crucial for determining the absolute positions of the FOVs within the global space of the sample.
 
