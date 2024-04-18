@@ -787,7 +787,7 @@ def spot_cnt_non_parallel(spots,positions, pix_size ,offset_dd):
     return new_df
 
 
-def overlapping_eval(spots,positions,fovs,pix_size,fov_size):
+def overlapping_eval(spots,positions,fovs,pix_size,fov_size, output_loc):
     #Calculating offsets
     start = time.time()
     offset_df=offset_calc_parallel(spots,positions,fovs,pix_size,fov_size)
@@ -1010,7 +1010,16 @@ def overlapping_eval(spots,positions,fovs,pix_size,fov_size):
     
 
 
-def SBGR(spots,positions,pix_size,fov_size):
+def SBGR(spot_loc,position_loc,pix_size,fov_size,output_loc):
+    #receive potision.csv file and trim
+    positions = pd.read_csv(position_loc, header=None, names=["x", "y"])
+    #positions = pd.read_csv('D:/U2OS/cs2_strip_mfish/merlin_output/spots/positions.csv', header=None, names=["x", "y"])
+    positions["x"] = positions["x"]/pix_size 
+    positions["y"] = positions["y"]/pix_size
+    positions.insert(0, "index", np.arange(0,len(positions)), True)
+    
+    #receiving the spots file
+    spots=pd.read_csv(spot_loc)
     spots['id'] = spots.index
     fovs=range(len(positions))
     
@@ -1021,7 +1030,6 @@ def SBGR(spots,positions,pix_size,fov_size):
     offset_df_ori  = deepcopy(offset_df)
     
     #network generation and estimation
-    offset_df_before_est = deepcopy(offset_df)
     offset_df.index = range(len(offset_df))
     warped = 0 # Is it already stitched by other stitching method
     if warped==1:
@@ -1143,6 +1151,8 @@ def SBGR(spots,positions,pix_size,fov_size):
     
     dup_1.loc[:,['global_x','global_y']] = dup_locs
     spots_final = pd.concat([spots_final,dup_1])
-    return spots_final,positions, offset_cred_2
+    spots_final.to_csv(output_loc + '/SBGR_spots.csv')
+    positions.to_csv(output_loc + '/SBGR_positions.csv')
+    offset_cred_2.to_csv(output_loc + '/SBGR_errors.csv')
     
 
