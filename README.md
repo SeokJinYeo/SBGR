@@ -16,15 +16,15 @@ SBGR is a novel strategy for achieving precise image stitching at the single-mol
 
 ## Input Parameters
 
-- **`pixel_size`**: The physical size of one pixel in the image, specified in micrometers (µm). This parameter is essential for converting pixel measurements to real-world units.
+- **`pixel_size`**: The physical size of one pixel in the image, specified in micrometers (µm).
+
+- **`fov_size`**: The number of pixels in a FOV.
 
 - **`output_loc`**: The file path to the directory where output files from the SBGR function will be stored.
 
 - **`spots_loc`**: The path to the CSV file containing information about detected spots (`barcodes_20230426_raw_warped.csv`).
 
 - **`positions_loc`**: The path to the CSV file containing the locations of each FOV before stitching (`positions.csv`).
-
-- **`z_step`**: The step size along the z-axis for images taken at different depths, specified in micrometers (µm).
 
 ## Input Files
 
@@ -44,13 +44,11 @@ A two-column CSV file with each row representing the x and y coordinates (in µm
 
 The SBGR function will output below data sets:
 
-- **`stitched_spots.csv`**: Contains the processed spots data, including their new global positions after stitching.
+- **`SBGR_spots.csv`**: Contains the processed spots data, including their new global positions after stitching.
 
-- **`stitched_positions.csv`**: Contains the adjusted positional information of the FOVs.
+- **`SBGR_positions.csv`**: Contains the adjusted positional information of the FOVs.
 
-- **`offset.csv`**: Contains the d_err and the number of total spots and duplicate spots etc.. for each overlapping region.
-
-- **`dup_spots.csv`**: Contains the identities of every identified duplicate spots.
+- **`SBGR_error.csv`**: Contains the d_err and the number of total spots and duplicate spots etc.. for each overlapping region.
 
 ## Usage Notes
 
@@ -66,7 +64,7 @@ if __name__ == '__main__':
     spots_loc =  '/barcodes_20230426_raw_warped.csv'
     positions_loc = '/positions.csv'
     output_loc = r'/JIn\SBGR'
-    SBGR(spots_loc,positions_loc,pix_size,fov_size, outout_loc)
+    SBGR(spots_loc,positions_loc,pix_size,fov_size, output_loc)
 ```
 
 
