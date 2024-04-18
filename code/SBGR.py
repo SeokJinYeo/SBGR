@@ -659,7 +659,7 @@ def distance_dist2_parallel(spots,positions,offset,pix_size):
 
 def knn_imputation (reference_data, target_data, k_nn, params={}):
     neigh = KNeighborsClassifier(n_neighbors=k_nn, n_jobs=-1,
-                                 metric='euclidean', algorithm='brute')
+                                 metric='euclidean', algorithm='kd_tree')
     neigh.fit(reference_data[["x","y"]], np.array(reference_data["id"]))
     nn_distance, nn_cell_ids = neigh.kneighbors(target_data[["x","y"]])
     return [nn_distance, nn_cell_ids]
@@ -1081,7 +1081,6 @@ def SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step):
         spots['global_y']-=minus_y*0.103
         
     return spots, positions
-    
-    
+
     
 
