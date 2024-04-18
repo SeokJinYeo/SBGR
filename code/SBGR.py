@@ -43,44 +43,50 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
 
+def get_fov_bounds(fov, starting_positions, pix_size,fov_size):
+    min_x, min_y = get_fov_postion_from_zen_fov(fov,starting_positions) 
+    max_x = min_x + fov_size
+    max_y = min_y + fov_size
+    
+    return [min_x*pix_size, min_y*pix_size, max_x*pix_size, max_y*pix_size]
+
+def get_fov_bounds1(fov, starting_positions, pix_size,fov_size):
+    min_x, min_y = get_fov_postion_from_zen_fov(fov,starting_positions) 
+    max_x = min_x + fov_size
+    max_y = min_y + fov_size
+    
+    return [min_x*pix_size, min_y*pix_size, max_x*pix_size, max_y*pix_size]
+def get_fov_postion_from_zen_fov(zen_fov, positions):
+    # try:
+        
+    #     temp = positions_df[positions_df["Zen_pos"]==zen_fov]
+    #     return [temp.iloc[0]["x"], temp.iloc[0]["y"]]
+    # except:
+    #     return[positions.iloc[zen_fov]["x"],positions.iloc[zen_fov]["y"]]
+    
+    sel_pos = positions[positions["index"]==zen_fov]
+    return [sel_pos["x"].to_numpy()[0], sel_pos["y"].to_numpy()[0]]
+
 def get_fov_postion_from_zen_fov(zen_fov, positions):
     sel_pos = positions[positions["index"]==zen_fov]
     return [sel_pos["x"].to_numpy()[0], sel_pos["y"].to_numpy()[0]]
 
-def get_fov_bounds1(fov, starting_positions, pix_size):
-    min_x, min_y = get_fov_postion_from_zen_fov(fov,starting_positions) 
-    max_x = min_x + 2048
-    max_y = min_y + 2048
-    
-    return [min_x*pix_size, min_y*pix_size, max_x*pix_size, max_y*pix_size]
-
-def get_fov_boxes(fovs, starting_positions, pix_size, pix_reduction=0):
+def get_fov_boxes(fovs, starting_positions, pix_size,fov_size, pix_reduction=0):
     boxes = []
     for f in fovs:
         if pix_reduction!=0:
-            min_x, min_y, max_x, max_y = get_fov_bounds1(f,starting_positions,pix_size)
+            min_x, min_y, max_x, max_y = get_fov_bounds1(f,starting_positions,pix_size,fov_size)
             min_x, min_y = [min_x+pix_reduction*pix_size, min_y+pix_reduction*pix_size]
             max_x, max_y = [max_x-pix_reduction*pix_size, max_y-pix_reduction*pix_size]
             temp_box = geometry.box(min_x, min_y, max_x, max_y)
         else:    
-            temp_box = geometry.box(*get_fov_bounds1(f,starting_positions,pix_size))
+            temp_box = geometry.box(*get_fov_bounds1(f,starting_positions,pix_size,fov_size))
         boxes.append(temp_box)
     return boxes
 
-def overlapping_box_spot(spots_s,fov,positions,overlapping_box):
-    #working_spots=deepcopy(spots)
-    #working_spots=working_spots[working_spots['fov']==fov]
-    spots_s=spots_s[spots_s['fov']==fov]
-    spots_s=spots_s[(spots_s.global_x>=overlapping_box[0])&(spots_s.global_y>=overlapping_box[1])&(spots_s.global_x<=overlapping_box[2])&(spots_s.global_y<=overlapping_box[3])]
-    return spots_s
 
-def gene_list(overlapped_spots):
-    genes_count=pd.DataFrame(overlapped_spots['barcode_id'].value_counts())
-    genes_count.rename(columns={'barcode_id':'count'},inplace=True)
-    return genes_count
-
-def find_intensections2(fovs, positions, pix_size):
-    fov_boxes = get_fov_boxes(fovs, positions, pix_size)
+def find_intensections2(fovs, positions, pix_size,fov_size):
+    fov_boxes = get_fov_boxes(fovs, positions, pix_size,fov_size)
     intercesting_fovs = []
     minor_intersecting=[]
     for f in fovs:
@@ -106,6 +112,7 @@ def find_intensections2(fovs, positions, pix_size):
             minor_pairs.append(i)
     return intersecting_fov_pairs,minor_pairs
 
+##added by jin
 def gene_ratio(genes_list,gene_list1,gene_list2):
     ratio=np.zeros(len(genes_list))
     for i in range(len(genes_list)):
@@ -115,12 +122,25 @@ def gene_ratio(genes_list,gene_list1,gene_list2):
             ratio[i]=gene_list2.loc[genes_list.index[i]][0]/(gene_list2.loc[genes_list.index[i]][0]+gene_list1.loc[genes_list.index[i]][0])
     genes_list.insert(1,'ratio',ratio)
     return genes_list
-def filtering(genes_list):
-    genes_filtered=genes_list[(genes_list['count']>60) &(genes_list['ratio']>0.4) & (genes_list['ratio']<0.6)]
-    return genes_filtered
+
+#fast version, but create warning message
+def overlapping_box_spot(spots,fov,positions,overlapping_box):
+    #working_spots=deepcopy(spots)
+    #working_spots=working_spots[working_spots['fov']==fov]
+    spots=spots[spots['fov']==fov]
+    spots=spots[(spots.global_x>=overlapping_box[0])&(spots.global_y>=overlapping_box[1])&(spots.global_x<=overlapping_box[2])&(spots.global_y<=overlapping_box[3])]
+    return spots
+
+
+##added by jin
+def gene_list(overlapped_spots):
+    genes_count=pd.DataFrame(overlapped_spots['barcode_id'].value_counts())
+    genes_count.rename(columns={'barcode_id':'count'},inplace=True)
+    return genes_count
+
 
 def position_to_image(overlap_gene,box):
-    pix_box=box/0.103
+    pix_box=box/0.11
     pix_box=pix_box.astype(int)
     #im=np.zeros((pix_box[2]-pix_box[0]+1,pix_box[3]-pix_box[1]+1))
     im=np.zeros((pix_box[2]-pix_box[0]+10,pix_box[3]-pix_box[1]+10))
@@ -130,8 +150,8 @@ def position_to_image(overlap_gene,box):
     #x=x.astype(int)
     #y=y.astype(int)
     for i in range(size):
-        x_pix = int((x[i]-box[0])/0.103)
-        y_pix = int((y[i]-box[1])/0.103)
+        x_pix = int((x[i]-box[0])/0.11)
+        y_pix = int((y[i]-box[1])/0.11)
         #x_loc=x[i]-box[0]
         #y_loc=y[i]-box[1]
         im[x_pix,y_pix]=255
@@ -158,8 +178,8 @@ def minimum_spanning_tree(offset_sorted,spots,positions):
             if x_rank < y_rank:
                 shift_ind=np.array(min_tree.loc[min_tree['parent']==x,'node'])
                 for shift in shift_ind:
-                    spots.loc[spots['fov']==shift,'global_x']-=pair_offset[0]*0.103
-                    spots.loc[spots['fov']==shift,'global_y']-=pair_offset[1]*0.103
+                    spots.loc[spots['fov']==shift,'global_x']-=pair_offset[0]*0.11
+                    spots.loc[spots['fov']==shift,'global_y']-=pair_offset[1]*0.11
                     positions.loc[positions['index']==shift,'x']-=pair_offset[0]
                     positions.loc[positions['index']==shift,'y']-=pair_offset[1]
                 for j in range(i,len(offset_sorted)):
@@ -176,8 +196,8 @@ def minimum_spanning_tree(offset_sorted,spots,positions):
             elif y_rank <= x_rank:
                 shift_ind=np.array(min_tree.loc[min_tree['parent']==y,'node'])
                 for shift in shift_ind:
-                    spots.loc[spots['fov']==shift,'global_x']+=pair_offset[0]*0.103
-                    spots.loc[spots['fov']==shift,'global_y']+=pair_offset[1]*0.103
+                    spots.loc[spots['fov']==shift,'global_x']+=pair_offset[0]*0.11
+                    spots.loc[spots['fov']==shift,'global_y']+=pair_offset[1]*0.11
                     positions.loc[positions['index']==shift,'x']+=pair_offset[0]
                     positions.loc[positions['index']==shift,'y']+=pair_offset[1]
                 for j in range(i,len(offset_sorted)):
@@ -231,12 +251,14 @@ def removing_dup_spots_knn(spots,positions,offset,intersection_type,error,pix_si
         print("filtered out by z_dif: %i" %z_dif_count)
     return spots,align_log
 
-def get_overlapping_box(fov_0, fov_1, positions_df, pix_size, edge_removal_pix):
-    fov_box_0 = get_fov_boxes([fov_0], positions_df, pix_size, edge_removal_pix)[0]
-    fov_box_1 = get_fov_boxes([fov_1], positions_df, pix_size, edge_removal_pix)[0]
+def get_overlapping_box(fov_0, fov_1, positions_df, pix_size,fov_size, edge_removal_pix):
+    fov_box_0 = get_fov_boxes([fov_0], positions_df, pix_size,fov_size, edge_removal_pix)[0]
+    fov_box_1 = get_fov_boxes([fov_1], positions_df, pix_size,fov_size, edge_removal_pix)[0]
     
     return fov_box_0.intersection(fov_box_1)
-def spots_count_overlapping(offset,spots,positions,edge_pix,pix_size):
+
+
+def spots_count_overlapping(offset,spots,positions,fov_size,pix_size):
     spot_numb=[]
     for minor in range(len(offset)):
         #fov1=minor_intersects[minor][0]
@@ -244,7 +266,7 @@ def spots_count_overlapping(offset,spots,positions,edge_pix,pix_size):
         fov1=offset.iloc[minor]['gene_pair'][0] 
         fov2=offset.iloc[minor]['gene_pair'][1]
         #fov2=minor[1]
-        box=get_overlapping_box(fov1,fov2,positions,pix_size,-30)
+        box=get_overlapping_box(fov1,fov2,positions,pix_size,fov_size,-30)
         box=np.array(box.bounds)
         spots_1=overlapping_box_spot(spots,fov1,positions,box)
         spots_2=overlapping_box_spot(spots,fov2,positions,box)
@@ -315,9 +337,9 @@ def fovs_network_draw_color_edge(offset,positions,scale):
     #colors_unscaled=[tuple(map(lambda x: (maxWeight-minWeight)*x+minWeight-2, y)) for y in a_netw_colors]
     # um scale
     if scale == 'um':
-        colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight)*0.103, y)) for y in a_netw_colors]
+        colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight)*0.11, y)) for y in a_netw_colors]
     elif scale == 'nm':
-        colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight)*103, y)) for y in a_netw_colors]
+        colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight)*110, y)) for y in a_netw_colors]
     else:
         colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight), y)) for y in a_netw_colors]
     #generate a 'dummy' heatmap using the edgeColors as substrate for colormap
@@ -359,9 +381,9 @@ def fovs_network_draw_color_edge2(offset,positions, maxWeight, minWeight,scale):
     a_netw_weights = [fov_align_graph[source][dest]['weight'] for source, dest in a_netw_edges]
     a_netw_colors = [plt.cm.Blues((weight-minWeight)/(maxWeight-minWeight)) for weight in a_netw_weights]
     if scale == 'um':
-        colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight)*0.103, y)) for y in a_netw_colors]
+        colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight)*0.11, y)) for y in a_netw_colors]
     elif scale == 'nm':
-        colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight)*103, y)) for y in a_netw_colors]
+        colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight)*110, y)) for y in a_netw_colors]
     else:
         colors_unscaled=[tuple(map(lambda x: ((maxWeight-minWeight)*x+minWeight), y)) for y in a_netw_colors]
     #colors_unscaled=[tuple(map(lambda x: (maxWeight-minWeight)*x+minWeight-2, y)) for y in a_netw_colors]
@@ -389,22 +411,33 @@ def fovs_network_draw_color_edge2(offset,positions, maxWeight, minWeight,scale):
     plt.show()
 
 def fov_coord(loaded_positions_df):
-    x = set(list(loaded_positions_df['x']))
-    x = sorted(x)
-    x_coord = {}
-    for i in range(len(x)):
-        x_coord[x[i]] = i
-        
-    y = set(list(loaded_positions_df['y']))
-    y = sorted(y)
-    y_coord = {}
-    for i in range(len(y)):
-        y_coord[y[i]] = i
-        
+    x = sorted(list(set(loaded_positions_df['x'])))
+    grid_x = []
+    for i,tmp_x in enumerate(x):
+        if i==0:
+            grid_x.append(tmp_x)
+        else:
+            if tmp_x - grid_x[-1] > 1000:
+                grid_x.append(tmp_x)
+
+    y = sorted(list(set(loaded_positions_df['y'])))
+    grid_y = []
+    for i,tmp_y in enumerate(y):
+        if i==0:
+            grid_y.append(tmp_y)
+        else:
+            if tmp_y - grid_y[-1] > 1000:
+                grid_y.append(tmp_y)
+
     fov_coord = {}
     for i in range(len(loaded_positions_df)):
-        tmp_x_coord = x_coord[loaded_positions_df.iloc[i]['x']]
-        tmp_y_coord = y_coord[loaded_positions_df.iloc[i]['y']]
+        tmp_x = loaded_positions_df.iloc[i]['x']
+        closest_value = min(grid_x, key=lambda x: abs(x - tmp_x))
+        tmp_x_coord = grid_x.index(closest_value) + 1
+
+        tmp_y = loaded_positions_df.iloc[i]['y']
+        closest_value = min(grid_y, key=lambda x: abs(x - tmp_y))
+        tmp_y_coord = grid_y.index(closest_value) + 1
         fov_coord[loaded_positions_df.iloc[i]['index']] = np.array([tmp_x_coord,tmp_y_coord])
     return fov_coord
 
@@ -457,6 +490,7 @@ def align_offset_knn(spots,fov1,fov2,overlapping_box,genes_list,offset,pix_size,
                     count2+=1
     return spots,count,count2,pp
 
+#Just count dup spot
 def align_offset2_knn(spots,fov1,fov2,overlapping_box,genes_list,offset,pix_size,error,z_step):
     count=0
     count2=0
@@ -503,12 +537,11 @@ def align_offset2_knn(spots,fov1,fov2,overlapping_box,genes_list,offset,pix_size
 
 # Calculating Offset
 
-def offset_calc(working_spots,positions, pix_size, fovs):
-    i=0
+def offset_calc(working_spots,positions, pix_size, fov_size,fovs):
     fov1=fovs[0]
     fov2=fovs[1]
     offset_df=pd.DataFrame({'fov_pair' : [], 'x_offset' : [],'y_offset' : [],'tot_spot':[]})
-    box=get_overlapping_box(fov1,fov2,positions,pix_size,-30)
+    box=get_overlapping_box(fov1,fov2,positions,pix_size,fov_size,-30)
     #box=get_overlapping_box(fov1,fov2,positions,pix_size,0)
     box=np.array(box.bounds)
     spots_1=overlapping_box_spot(working_spots,fov1,positions,box)
@@ -517,15 +550,14 @@ def offset_calc(working_spots,positions, pix_size, fovs):
     im2_1=position_to_image(spots_2,box)
     warnings.filterwarnings(action='ignore')
     offset1=phase_cross_correlation(im1_1,im2_1,upsample_factor=100)
-    offset_df.loc[i]=[fovs,offset1[0][0],offset1[0][1],len(spots_1)+len(spots_2)]    
+    offset_df=pd.DataFrame({'fov_pair' : [fovs], 'x_offset' : offset1[0][0],'y_offset' : offset1[0][1],'tot_spot':len(spots_1)+len(spots_2)})
     return offset_df
 
-def offset_calc_parallel(spots,positions,intersecting_fov_pairs, pix_size):
+def offset_calc_parallel(spots,positions,intersecting_fov_pairs, pix_size,fov_size):
     offset_df=pd.DataFrame({'fov_pair' : [], 'x_offset' : [],'y_offset' : [],'tot_spot':[]})
     working_spots = spots[['fov','global_x','global_y','global_z','barcode_id','id']]
-    
     pool = Pool(processes=multiprocessing.cpu_count()) 
-    custfunct = partial(offset_calc,working_spots,positions,pix_size)
+    custfunct = partial(offset_calc,working_spots,positions,pix_size,fov_size)
     fov_pair_list=[]
     for i in range(len(intersecting_fov_pairs)):
         fov_pair_list.append([intersecting_fov_pairs[i][0],intersecting_fov_pairs[i][1]])
@@ -534,7 +566,9 @@ def offset_calc_parallel(spots,positions,intersecting_fov_pairs, pix_size):
     for value in result.get():
         offset_df=pd.concat([offset_df,value])
     pool.close()
+    
     return offset_df
+
 
 def spots_to_pos(spots):
     ids = spots['id']
@@ -623,12 +657,12 @@ def spot_dist2_knn3(spots,fov1,fov2,overlapping_box,genes_list,offset,pix_size):
     return dup_df
 
 
-def two_fov_dist(spots,positions,pix_size,vals):
+def two_fov_dist(spots,positions,pix_size,vals,fov_size):
     dup_df=pd.DataFrame({'id1' : [], 'id2' : [],'dist' : [], 'fov_pair':[],'x1':[],'x2':[],'y1':[],'y2':[]})
     fov1=vals[0]
     fov2=vals[1]
     pair_offset=vals[2]
-    box=get_overlapping_box(fov1,fov2,positions,pix_size,0)
+    box=get_overlapping_box(fov1,fov2,positions,pix_size,fov_size,0)
     box=np.array(box.bounds)
     spots_1=overlapping_box_spot(spots,fov1,positions,box)
     spots_2=overlapping_box_spot(spots,fov2,positions,box)
@@ -642,8 +676,7 @@ def two_fov_dist(spots,positions,pix_size,vals):
     dup_df = spot_dist2_knn3(spots,fov1,fov2,box,overlapped_gene,pair_offset,pix_size)
     return dup_df
     
-
-def distance_dist2_parallel(spots,positions,offset,pix_size):
+def distance_dist2_parallel(spots,positions,offset,pix_size,fov_size):
     warnings.filterwarnings(action='ignore')
     working_spots = spots[['fov','global_x','global_y','global_z','barcode_id','id']]
     dup_dists_df=pd.DataFrame({'id1' : [], 'id2' : [],'dist' : [], 'fov_pair':[],'x1':[],'x2':[],'y1':[],'y2':[]})
@@ -652,7 +685,7 @@ def distance_dist2_parallel(spots,positions,offset,pix_size):
         fov1=offset.iloc[i]['fov_pair'][0] 
         fov2=offset.iloc[i]['fov_pair'][1]
         pair_offset=np.array([offset.iloc[i]['x_offset'],offset.iloc[i]['y_offset']])
-        tmp_df = two_fov_dist(working_spots,positions,pix_size,[fov1,fov2,pair_offset])
+        tmp_df = two_fov_dist(working_spots,positions,pix_size,[fov1,fov2,pair_offset],fov_size)
         dup_dists_df = pd.concat([dup_dists_df,tmp_df])
     return dup_dists_df
 
@@ -677,14 +710,14 @@ def spot_cnt(working_spots,positions, pix_size,tmp_df):
     fov2=fovs[1]
     sel_pos = positions[positions["index"]==fov1]
     min_x, min_y =  [sel_pos["x"].to_numpy()[0], sel_pos["y"].to_numpy()[0]]
-    max_x = min_x + 2048
-    max_y = min_y + 2048
+    max_x = min_x + 2394
+    max_y = min_y + 2394
     box1 = geometry.box(*[(min_x+30)*pix_size, (min_y+30)*pix_size, (max_x-30)*pix_size, (max_y-30)*pix_size])
     
     sel_pos = positions[positions["index"]==fov2]
     min_x, min_y =  [sel_pos["x"].to_numpy()[0]+offset[0], sel_pos["y"].to_numpy()[0]+offset[1]]
-    max_x = min_x + 2048
-    max_y = min_y + 2048
+    max_x = min_x + 2394
+    max_y = min_y + 2394
     box2 = geometry.box(*[(min_x+30)*pix_size, (min_y+30)*pix_size, (max_x-30)*pix_size, (max_y-30)*pix_size])
     
     box=np.array(box1.intersection(box2).bounds)
@@ -753,16 +786,17 @@ def spot_cnt_non_parallel(spots,positions, pix_size ,offset_dd):
     new_df = new_df.iloc[1: , :]  
     return new_df
 
-def overlapping_eval(spots,positions,fovs,pix_size):
+
+def overlapping_eval(spots,positions,fovs,pix_size,fov_size):
     #Calculating offsets
     start = time.time()
-    offset_df=offset_calc_parallel(spots,positions,fovs,pix_size)
+    offset_df=offset_calc_parallel(spots,positions,fovs,pix_size,fov_size)
     end = time.time()
     print(f"{end - start:.5f} sec for calculating offsets")
     
     # Aggregating spot pair-wise distances
     start = time.time()
-    dup_distances_df = distance_dist2_parallel(spots,positions,offset_df,pix_size)
+    dup_distances_df = distance_dist2_parallel(spots,positions,offset_df,pix_size,fov_size)
     end = time.time()
     print(f"{end - start:.5f} sec for aggregating spot pair distances")
     
@@ -791,18 +825,18 @@ def overlapping_eval(spots,positions,fovs,pix_size):
     fig,ax = plt.subplots()
     plt.xlim(-2.5, 2.5)
     plt.hist(dist_log, color='black',density = True, bins=100)
-    plt.plot(x_axis, y_axis0, lw=3, c='C0')
-    plt.plot(x_axis, y_axis1, lw=3, c='C1')
-    plt.xlabel("log(distance)", fontsize=20)
+    if mean[0][0]>mean[1][0]:
+        plt.plot(x_axis, y_axis0, lw=3, c='C1')
+        plt.plot(x_axis, y_axis1, lw=3, c='C0')
+    else:
+        plt.plot(x_axis, y_axis0, lw=3, c='C0')
+        plt.plot(x_axis, y_axis1, lw=3, c='C1')
+    plt.xlabel("log₁₀(Distances [µm])", fontsize=20)
     plt.ylabel("Density", fontsize=20)
+    plt.yticks(fontsize = 15)
+    plt.xticks(fontsize = 15)
     plt.show()
-    
-    fig,ax = plt.subplots()
-    plt.xlim(-2.5, 2.5)
-    plt.hist(dist_log, color='black', bins=100)
-    plt.xlabel("log(distance)", fontsize=20)
-    plt.ylabel("Counts", fontsize=20)
-    plt.show()
+   
     
     # Get the cluster assignments for each data point
     clusters = gmm.predict(dist_log.reshape(-1, 1))
@@ -829,7 +863,7 @@ def overlapping_eval(spots,positions,fovs,pix_size):
         if error1_eval > 1:
             print(error1_eval)
             print("clustering error") 
-    print("threshold : ", error1)
+    print("threshold : ", 10**error1)
     print("means : ", np.mean(dist_0['dist']), np.mean(dist_1['dist']))
     print("stds : ", np.std(dist_0['dist']), np.std(dist_1['dist']))
     # Calculating 
@@ -843,7 +877,7 @@ def overlapping_eval(spots,positions,fovs,pix_size):
     
     d_err = []
     dup_spots = []
-    for tmp_pair in a:
+    for tmp_pair in fovs:
         identified_dup_spots_ss = identified_dup_spots[identified_dup_spots['fov_pair_str']==str(tmp_pair)]
         d_err.append(np.average(identified_dup_spots_ss['ori_dist']))
         dup_spots.append(len(identified_dup_spots_ss))
@@ -938,7 +972,7 @@ def overlapping_eval(spots,positions,fovs,pix_size):
     cred_or_not = []
     for i in range(len(offset_df)):
         tmp_df = offset_df.iloc[[i]]
-        if float(tmp_df['dup_ratio'])>0.2 and int(tmp_df['dup_spots'])>2:
+        if float(tmp_df['dup_ratio'])>0.1 and int(tmp_df['dup_spots'])>2:
             cred_or_not.append(1)
         else:
             cred_or_not.append(0)
@@ -975,29 +1009,16 @@ def overlapping_eval(spots,positions,fovs,pix_size):
     return offset_df,offset_cred,offset_non_cred,final_dup_dist_df,identified_dup_spots, error1
     
 
-def SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step):
 
-    
-    #receive potision.csv file and trim
-    positions = pd.read_csv(position_loc, header=None, names=["x", "y"])
-    #positions = pd.read_csv('D:/U2OS/cs2_strip_mfish/merlin_output/spots/positions.csv', header=None, names=["x", "y"])
-    positions["x"] = positions["x"]/pix_size 
-    positions["y"] = positions["y"]/pix_size
-    fov_info=np.zeros((len(positions),2))
-    positions.insert(0, "index", np.arange(0,len(positions)), True)
-    
-    #receiving the spots file
-    spots=pd.read_csv(spot_loc)
+def SBGR(spots,positions,pix_size,fov_size):
     spots['id'] = spots.index
     fovs=range(len(positions))
     
     #find the major(a) and minor(b) intersections
-    a,b=find_intensections2(fovs,positions,pix_size)
-    
-    offset_df,offset_cred,offset_non_cred,final_dup_dist_df,identified_dup_spots,error1 = overlapping_eval(spots,positions,a,pix_size)
+    a,b=find_intensections2(fovs,positions,pix_size,fov_size)
+    print(len(a))
+    offset_df,offset_cred,offset_non_cred,final_dup_dist_df,identified_dup_spots,error1 = overlapping_eval(spots,positions,a,pix_size,fov_size)
     offset_df_ori  = deepcopy(offset_df)
-    offset_df.to_csv(save_folder + '/offsets_0rnd.csv')
-    identified_dup_spots.to_csv(save_folder + '/dup_spots_0rnd.csv')
     
     #network generation and estimation
     offset_df_before_est = deepcopy(offset_df)
@@ -1015,7 +1036,7 @@ def SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step):
             pair=offset_df.iloc[i]['fov_pair']
             if offset_df.iloc[i]['cred']==1:
                 direction=fov_cord[pair[1]]-fov_cord[pair[0]]
-                if str(direction) == str(np.array([0,1])):
+                if str(direction) == str(np.array([0,1])) or str(direction) == str(np.array([0,-1])):
                     if fov_cord[pair[0]][1] not in vertical_offsets:
                         vertical_offsets[fov_cord[pair[0]][1]] = [np.array([offset_df.iloc[i]['x_offset'],offset_df.iloc[i]['y_offset']])]
                     else:
@@ -1031,14 +1052,24 @@ def SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step):
         for key in vertical_offsets:
             mean_vertical_offset[key]=np.mean(vertical_offsets[key],axis=0)
         mean_horizontal_offset = np.mean(horizontal_offsets,axis=0)
+        
+        tot_mean_vert = []
+        for aa in mean_vertical_offset:
+            tot_mean_vert.append(mean_vertical_offset[aa])
+        tot_mean_vert = np.mean(tot_mean_vert,axis=0)
+            
     
         for i,row in offset_df.iterrows():
             pair=offset_df.loc[i,'fov_pair']
             if offset_df.loc[i,'cred']==0:
                 direction=fov_cord[pair[1]]-fov_cord[pair[0]]
-                if str(direction) == str(np.array([0,1])):
-                    offset_df.loc[i,'x_offset']=mean_vertical_offset[fov_cord[pair[0]][1]][0]
-                    offset_df.loc[i,'y_offset']=mean_vertical_offset[fov_cord[pair[0]][1]][1]
+                if str(direction) == str(np.array([0,1])) or str(direction) == str(np.array([0,-1])):
+                    if fov_cord[pair[0]][1] in mean_vertical_offset:
+                        offset_df.loc[i,'x_offset']=mean_vertical_offset[fov_cord[pair[0]][1]][0]
+                        offset_df.loc[i,'y_offset']=mean_vertical_offset[fov_cord[pair[0]][1]][1]
+                    else:
+                        offset_df.loc[i,'x_offset']=tot_mean_vert[0]
+                        offset_df.loc[i,'y_offset']=tot_mean_vert[1]
                 else:
                     if str(direction) == str(np.array([1,0])):
                         offset_df.loc[i,'x_offset']=mean_horizontal_offset[0]
@@ -1054,33 +1085,64 @@ def SBGR(pix_size, save_folder, spot_loc, position_loc, edge_pix, z_step):
     #offset_sorted=offset.sort_values('duplicate',ascending=True) # reverse weighted by duplicate spots
     spots,positions,overlapping_track = minimum_spanning_tree(offset_sorted,spots,positions)
     
-    offset_df_2,offset_cred_2,offset_non_cred_2,final_dup_dist_df_2,identified_dup_spots_2,error2 = overlapping_eval(spots,positions,a,pix_size)
+    offset_df_2,offset_cred_2,offset_non_cred_2,final_dup_dist_df_2,identified_dup_spots_2,error2 = overlapping_eval(spots,positions,a,pix_size,fov_size)
     offset_df_2['cred_bef'] = list(offset_df_ori['cred'])
     
     offset_df_2_cred = offset_df_2[(offset_df_2['cred_bef']==1) & (offset_df_2['cred']==1)]
     fovs_network_draw_color_edge2(offset_df_2_cred,positions, maxweight,minweight,'um')
     maxweight,minweight,scale = fovs_network_draw_color_edge(offset_df_2_cred,positions,'nm')
     
-    offset_df_2.to_csv(save_folder + '/offsets_1rnd.csv')
-    identified_dup_spots_2.to_csv(save_folder + '/dup_spots_1rnd.csv')
-    
-    dup_ids = list(identified_dup_spots_2['id1'])+list(identified_dup_spots_2['id2'])
-    spots_non_dup = spots.loc[~(spots['id'].isin(dup_ids))]
-    
-    
-    positions['x']=positions['x'].astype(float)
-    positions['y']=positions['y'].astype(float)
-    minus_x = np.min(positions['x'])
-    minus_y = np.min(positions['y'])
-    if minus_x <0:
-        positions['x']-=minus_x
-        spots['global_x']-=minus_x*0.103
 
-    if minus_y <0:
-        positions['y']-=minus_y
-        spots['global_y']-=minus_y*0.103
+    dup_ids1 = list(identified_dup_spots_2['id1'])
+    dup_ids2 = list(identified_dup_spots_2['id2'])
+    
+    duplicates_list = list(set(dup_ids1) & set(dup_ids2))
+    
+    dup_index = [dup_ids2.index(d) for d in duplicates_list]
+    dup_ids1_f = [item for idx, item in enumerate(dup_ids1) if idx not in dup_index]
+    dup_ids2_f = [item for idx, item in enumerate(dup_ids2) if idx not in dup_index]
+    
+    from collections import Counter
+    duplicates_1 = [element for element, count in Counter(dup_ids1_f).items() if count > 1]
+   
+    for d in duplicates_1:
+        d_index = [i for i, x in enumerate(dup_ids1_f) if x == d]
+        d_index = d_index[1:]
+        dup_ids1_f = [item for idx, item in enumerate(dup_ids1_f) if idx not in d_index]
+        dup_ids2_f = [item for idx, item in enumerate(dup_ids2_f) if idx not in d_index]
         
-    return spots, positions
-
+    duplicates_2 = [element for element, count in Counter(dup_ids2_f).items() if count > 1]
+        
+    for d in duplicates_2:
+        d_index = [i for i, x in enumerate(dup_ids2_f) if x == d]
+        d_index = d_index[1:]
+        dup_ids1_f = [item for idx, item in enumerate(dup_ids1_f) if idx not in d_index]
+        dup_ids2_f = [item for idx, item in enumerate(dup_ids2_f) if idx not in d_index]
+        
+   
+    
+    dup_ids = dup_ids1_f+dup_ids2_f
+    dup_num = int(len(dup_ids)/2)
+    
+    spots_non_dup = spots.loc[~(spots['id'].isin(dup_ids))]
+    spots_dup = spots.loc[(spots['id'].isin(dup_ids))]
+    spots_final = deepcopy(spots_non_dup)
+    
+    spots_dup['id'] = pd.Categorical(spots_dup['id'],categories = dup_ids)
+    spots_dup = spots_dup.sort_values(by = "id")
+    
+    
+    dup_1 = spots_dup.iloc[:dup_num,:]
+    dup_2 = spots_dup.iloc[dup_num:,:]
+    
+    dup1_locs = np.array(dup_1[['global_x','global_y']])
+    
+    dup2_locs = np.array(dup_2[['global_x','global_y']])
+    
+    dup_locs = (dup1_locs + dup2_locs)/2
+    
+    dup_1.loc[:,['global_x','global_y']] = dup_locs
+    spots_final = pd.concat([spots_final,dup_1])
+    return spots_final,positions, offset_cred_2
     
 
